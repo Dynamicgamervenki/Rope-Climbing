@@ -4,24 +4,27 @@
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CustomCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "DebugHelpers.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 // ARopeClimbingCharacter
 
-ARopeClimbingCharacter::ARopeClimbingCharacter()
+ARopeClimbingCharacter::ARopeClimbingCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UCustomCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 	
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
+	CustomCharacterMovementComponent = Cast<UCustomCharacterMovementComponent>(GetCharacterMovement());
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
@@ -50,7 +53,6 @@ void ARopeClimbingCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 }
-
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -75,6 +77,10 @@ void ARopeClimbingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARopeClimbingCharacter::Look);
+
+		//Rope Climbing
+		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ARopeClimbingCharacter::OnClimbActionStarted);
+		
 	}
 	else
 	{
@@ -111,5 +117,19 @@ void ARopeClimbingCharacter::Look(const FInputActionValue& Value)
 	{
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ARopeClimbingCharacter::OnClimbActionStarted(const FInputActionValue& Value)
+{
+	if (!CustomCharacterMovementComponent) return;
+
+	if (!CustomCharacterMovementComponent->IsClimbing())
+	{
+		CustomCharacterMovementComponent->ToogleClimbing(true);
+	}
+	else
+	{
+		CustomCharacterMovementComponent->ToogleClimbing(false);
 	}
 }
