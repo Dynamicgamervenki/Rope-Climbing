@@ -22,8 +22,10 @@ class ROPECLIMBING_API UCustomCharacterMovementComponent : public UCharacterMove
 {
 	GENERATED_BODY()
 
-	public:
+	protected:
 	virtual  void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
+	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 
 	private:
 
@@ -37,7 +39,10 @@ class ROPECLIMBING_API UCustomCharacterMovementComponent : public UCharacterMove
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Climbing, meta = (AllowPrivateAccess = "true"))
 	TArray<TEnumAsByte<EObjectTypeQuery>> ClimbableSurfaceTraceTypes;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Climbing, meta = (AllowPrivateAccess = "true"))
+	float MaxBreakClimbDeceleration = 400.0f;
+	
 	UFUNCTION()
 	FHitResult TraceClimbableRope();
 
@@ -45,4 +50,7 @@ public :
 	void ToogleClimbing(bool bEnableClimb);
 	bool IsClimbing() const;
 	bool CanStartClimbing();
+	void StartClimbing();
+	void StopClimbing();
+	void PhysClimb(float deltaTime, int32 Iterations);
 };
